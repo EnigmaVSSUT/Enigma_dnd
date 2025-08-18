@@ -11,12 +11,14 @@ import {
   publishForm,
   submitForm,
   updateForm,
+  GetFormWithSubmissions
 } from "../../controller/form/form.controller";
 import { adminCoordinatorAuthValidation } from "../../middleware/auth/adminCordinator.auth";
 
 formRouter.post("/create", adminCoordinatorAuthValidation, createNewForm);
 
 formRouter.get("/getform/:userId/:formId", getFormById);
+formRouter.get("/getFormWithSubmissions/:formId",adminCoordinatorAuthValidation, GetFormWithSubmissions);
 formRouter.put("/updateForm", updateForm);
 
 formRouter.delete(

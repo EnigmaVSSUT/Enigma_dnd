@@ -15,9 +15,9 @@ app.use("/api/v1/auth", auth_routes_1.default);
 app.use("/api/v1/form", form_routes_1.default);
 app.get("/", (req, res) => {
     res.status(200).json({
-        info: "Drag and drop api ",
+        info: "Drag and drop form builder api",
         version: "v1",
-        dev: "Gyanranjan Patra"
+        dev: "Gyanranjan Patra & Dharmendra Mahanta"
     });
 });
 app.listen(process.env.PORT || 3000, () => {

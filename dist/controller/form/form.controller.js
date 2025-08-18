@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.submitForm = exports.getFormByUrl = exports.publishForm = exports.updateForm = exports.getFormById = exports.deleteForm = exports.getAllForm = exports.createNewForm = exports.getFormStats = void 0;
+exports.GetFormWithSubmissions = exports.submitForm = exports.getFormByUrl = exports.publishForm = exports.updateForm = exports.getFormById = exports.deleteForm = exports.getAllForm = exports.createNewForm = exports.getFormStats = void 0;
 const client_1 = require("@prisma/client");
 const prisma = new client_1.PrismaClient();
 const zod_1 = __importDefault(require("zod"));
@@ -170,7 +170,9 @@ const getAllForm = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
 });
 exports.getAllForm = getAllForm;
 const deleteForm = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
     const { formid } = req.params;
+    const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.id;
     if (!formid) {
         res.status(400).json({
             message: "All fields are required",
@@ -181,16 +183,19 @@ const deleteForm = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
         const form = yield prisma.form.findUnique({
             where: {
                 id: formid,
+                userId
             },
         });
         if (!form) {
             res.status(404).json({
                 message: "No form found",
             });
+            return;
         }
         yield prisma.form.delete({
             where: {
                 id: formid,
+                userId
             },
         });
         res.status(200).json({
@@ -322,7 +327,7 @@ const publishForm = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
                 id: formId,
             },
             data: {
-                publishd: true,
+                published: true,
             },
         });
         res.status(200).json({
@@ -358,6 +363,7 @@ const getFormByUrl = (req, res) => __awaiter(void 0, void 0, void 0, function* (
             },
             select: {
                 content: true,
+                userId: true
             },
         });
         if (!formContent) {
@@ -368,7 +374,7 @@ const getFormByUrl = (req, res) => __awaiter(void 0, void 0, void 0, function* (
         }
         res.status(200).json({
             message: "Form content fetched successfully",
-            content: formContent,
+            content: formContent
         });
     }
     catch (error) {
@@ -381,10 +387,10 @@ const getFormByUrl = (req, res) => __awaiter(void 0, void 0, void 0, function* (
 });
 exports.getFormByUrl = getFormByUrl;
 const submitForm = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { formUrl, content } = req.body;
-    if (!(formUrl === null || formUrl === void 0 ? void 0 : formUrl.trim()) || !content) {
+    const { formUrl, content, userId } = req.body;
+    if (!(formUrl === null || formUrl === void 0 ? void 0 : formUrl.trim()) || !content || !(userId === null || userId === void 0 ? void 0 : userId.trim())) {
         res.status(400).json({
-            messsage: "All fields are required"
+            messsage: "All fields are required",
         });
         return;
     }
@@ -395,7 +401,10 @@ const submitForm = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
                     increment: 1
                 },
                 formSubmissions: {
-                    create: content
+                    create: {
+                        content,
+                        userId,
+                    },
                 }
             },
             where: {
@@ -421,3 +430,47 @@ const submitForm = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
     }
 });
 exports.submitForm = submitForm;
+const GetFormWithSubmissions = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
+    const { formId } = req.params;
+    const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.id;
+    if (!(formId === null || formId === void 0 ? void 0 : formId.trim())) {
+        res.status(400).json({
+            messsage: "All fields are required",
+        });
+        return;
+    }
+    try {
+        const response = yield prisma.form.findUnique({
+            where: {
+                id: formId,
+                userId
+            },
+            include: {
+                formSubmissions: {
+                    orderBy: {
+                        createdAt: "desc"
+                    }
+                }
+            }
+        });
+        if (!response) {
+            res.status(400).json({
+                message: "No Submission found"
+            });
+            return;
+        }
+        res.status(200).json({
+            message: "Submission table fetched successfully",
+            content: response
+        });
+    }
+    catch (error) {
+        const err = error;
+        res.status(500).json({
+            message: "Internal server error",
+            error: err.message
+        });
+    }
+});
+exports.GetFormWithSubmissions = GetFormWithSubmissions;

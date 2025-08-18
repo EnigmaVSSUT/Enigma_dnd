@@ -33,7 +33,7 @@ model Form {
   id                           String      @id @default(uuid())
   userId                       String
   createdAt                    DateTime    @default(now())
-  publishd                     Boolean     @default(false)
+  published                    Boolean     @default(false)
   name                         String
   description                  String      @default("")
   content                      String      @default("{}")
@@ -43,20 +43,20 @@ model Form {
 
 
   formSubmissions              FormSubmissions[]
-  user        user             @relation(fields: [userId],references: [userId])
+  user        user             @relation(fields: [userId],references: [userId],onDelete: Cascade)
   
-  @@index([id,publishd,createdAt])
+  @@index([id,published,createdAt])
 }
 
 model FormSubmissions {
   id                           String       @id                    @default(uuid())
   createdAt                    DateTime     @default(now())
   formId                       String
-  content                      String
+  content                      Json
   userId                       String
 
-  form                         Form         @relation(fields: [formId],references: [id])
-  user                         user         @relation(fields: [userId],references: [userId])
+  form                         Form         @relation(fields: [formId],references: [id],onDelete: Cascade)
+  user                         user         @relation(fields: [userId],references: [userId],onDelete: Cascade)
 
   @@index([id,formId,userId])
 }

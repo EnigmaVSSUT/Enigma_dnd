@@ -27,7 +27,9 @@ const adminCoordinatorAuthValidation = (req, res, next) => __awaiter(void 0, voi
     try {
         const decoded = jsonwebtoken_1.default.verify(token, process.env.JWT_SECRET);
         const role = decoded.userRole;
+        const id = decoded.userId;
         if (role === "admin" || role === "coordinator") {
+            req.user = { id, role };
             next();
         }
         else {

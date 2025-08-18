@@ -167,6 +167,7 @@ export const getAllForm = async (req: Request, res: Response) => {
 
 export const deleteForm = async (req: Request, res: Response) => {
   const { formid } = req.params;
+  const userId = req.user?.id
   if (!formid) {
     res.status(400).json({
       message: "All fields are required",
@@ -178,18 +179,21 @@ export const deleteForm = async (req: Request, res: Response) => {
     const form = await prisma.form.findUnique({
       where: {
         id: formid,
+        userId
       },
     });
     if (!form) {
       res.status(404).json({
         message: "No form found",
       });
+      return
     }
     await prisma.form.delete({
       where: {
         id: formid,
+        userId
       },
-    });
+    })
     res.status(200).json({
       message: `${form?.name} form deleted `,
     });
@@ -317,7 +321,7 @@ export const publishForm = async (req: Request, res: Response) => {
         id: formId,
       },
       data: {
-        publishd: true,
+        published: true,
       },
     });
     res.status(200).json({
@@ -353,6 +357,7 @@ export const getFormByUrl = async (req: Request, res: Response) => {
       },
       select: {
         content: true,
+        userId: true
       },
     });
     if (!formContent) {
@@ -363,7 +368,7 @@ export const getFormByUrl = async (req: Request, res: Response) => {
     }
     res.status(200).json({
       message: "Form content fetched successfully",
-      content: formContent,
+      content: formContent
     });
   } catch (error) {
     const err = error as Error;
@@ -376,29 +381,32 @@ export const getFormByUrl = async (req: Request, res: Response) => {
 
 
 
-export const submitForm = async(req:Request,res:Response)=>{
-  const{formUrl,content} = req.body
-  if(!formUrl?.trim() || !content){
+export const submitForm = async (req: Request, res: Response) => {
+  const { formUrl, content, userId } = req.body;
+  if (!formUrl?.trim() || !content || !userId?.trim()) {
     res.status(400).json({
-      messsage: "All fields are required"
+      messsage: "All fields are required",
     });
-    return
+    return;
   }
   try {
     const response = await prisma.form.update({
-      data:{
-        submissions:{
-          increment:1
+      data: {
+        submissions: {
+          increment: 1
         },
-        formSubmissions:{
-          create:content
+        formSubmissions: {
+          create: {
+            content,
+            userId,
+          },
         }
       },
-      where:{
-        shareUrl:formUrl
+      where: {
+        shareUrl: formUrl
       }
     })
-    if(!response){
+    if (!response) {
       res.status(400).json({
         message: "Failed to submit form"
       });
@@ -413,7 +421,52 @@ export const submitForm = async(req:Request,res:Response)=>{
     const err = error as Error
     res.status(500).json({
       message: "Internal server error",
-      error:err.message
+      error: err.message
+    })
+  }
+}
+
+export const GetFormWithSubmissions = async (req: Request, res: Response) => {
+  const { formId } = req.params
+  const userId = req.user?.id
+
+  if (!formId?.trim()) {
+    res.status(400).json({
+      messsage: "All fields are required",
+    });
+    return;
+  }
+  try {
+    const response = await prisma.form.findUnique({
+      where: {
+        id: formId,
+        userId
+      },
+      include: {
+        formSubmissions: {
+          orderBy: {
+            createdAt: "desc"
+          }
+        }
+      }
+    })
+
+    if (!response) {
+      res.status(400).json({
+        message: "No Submission found"
+      });
+      return
+    }
+
+    res.status(200).json({
+      message: "Submission table fetched successfully",
+      content: response
+    })
+  } catch (error) {
+    const err = error as Error
+    res.status(500).json({
+      message: "Internal server error",
+      error: err.message
     })
   }
 }

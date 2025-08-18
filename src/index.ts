@@ -25,9 +25,9 @@ app.use("/api/v1/form",formRouter);
 
 app.get("/", (req, res) => {
   res.status(200).json({
-    info: "Drag and drop api ",
+    info: "Drag and drop form builder api",
     version: "v1",
-    dev:"Gyanranjan Patra"
+    dev:"Gyanranjan Patra & Dharmendra Mahanta"
   });
 });
 

@@ -6,6 +6,7 @@ const form_controller_1 = require("../../controller/form/form.controller");
 const adminCordinator_auth_1 = require("../../middleware/auth/adminCordinator.auth");
 formRouter.post("/create", adminCordinator_auth_1.adminCoordinatorAuthValidation, form_controller_1.createNewForm);
 formRouter.get("/getform/:userId/:formId", form_controller_1.getFormById);
+formRouter.get("/getFormWithSubmissions/:formId", adminCordinator_auth_1.adminCoordinatorAuthValidation, form_controller_1.GetFormWithSubmissions);
 formRouter.put("/updateForm", form_controller_1.updateForm);
 formRouter.delete("/delete/:formid", adminCordinator_auth_1.adminCoordinatorAuthValidation, form_controller_1.deleteForm);
 formRouter.get("/stats/:userId", form_controller_1.getFormStats);
