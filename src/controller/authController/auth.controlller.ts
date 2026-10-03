@@ -1,6 +1,7 @@
 require("dotenv").config();
 import { Request, Response } from "express";
 import { prisma } from "../../config/database";
+import { logger } from "../../config/logger";
 import bcryptjs from "bcryptjs";
 import jwt from "jsonwebtoken";
 import z from "zod";
@@ -65,7 +66,6 @@ export const signUp = async (req: Request, res: Response) => {
       });
       return;
     }
-    console.log(process.env.JWT_SECRET);
     const token = jwt.sign(
       { userEmail: user.userEmail, userRole: user.userRole },
       process.env.JWT_SECRET ||
@@ -73,12 +73,15 @@ export const signUp = async (req: Request, res: Response) => {
       { expiresIn: "30days" }
     );
 
+    logger.info({ userEmail: user.userEmail }, "user signed up");
+
     res.status(200).json({
       message: `${user.userName} signed up`,
       token: token,
     });
   } catch (error) {
     const err = error as Error;
+    logger.error({ err, route: "signUp" }, "signup failed");
     res.status(500).json({
       message: `${err.message}`,
     });
@@ -120,8 +123,7 @@ export const signIn = async (req: Request, res: Response) => {
       });
       return;
     }
-    console.log("signin")
-    console.log(process.env.JWT_SECRET)
+    logger.info({ userEmail: isUserExist.userEmail }, "user signed in");
     const token = jwt.sign(
       { userEmail: isUserExist.userEmail, userRole: isUserExist.userRole },
       process.env.JWT_SECRET ||
@@ -141,6 +143,7 @@ export const signIn = async (req: Request, res: Response) => {
     });
   } catch (error) {
     const err = error as Error;
+    logger.error({ err, route: "signIn" }, "signin failed");
     res.status(500).json({
       message: `${err.message}`,
     });

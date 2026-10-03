@@ -3,6 +3,7 @@ import dotenv from "dotenv";
 dotenv.config();
 
 import { PrismaClient } from "@prisma/client";
+import { logger } from "./logger";
 
 /**
  * Resolve the Postgres connection URL from discrete parts, so .env only
@@ -76,4 +77,46 @@ if (databaseUrl) {
 }
 
 // Shared client — import this instead of `new PrismaClient()` elsewhere.
-export const prisma = new PrismaClient();
+export const prisma = new PrismaClient({
+  log: [
+    { emit: "event", level: "query" },
+    { emit: "event", level: "warn" },
+    { emit: "event", level: "error" },
+  ],
+});
+
+const SLOW_QUERY_MS = Number(process.env.SLOW_QUERY_THRESHOLD_MS || 1000);
+
+// Prisma v6 emits log events via $on when `emit: "event"` is set.
+type PrismaLogEvent = {
+  timestamp: Date;
+  message: string;
+  target?: string;
+};
+type PrismaQueryEvent = PrismaLogEvent & {
+  query: string;
+  params: string;
+  duration: number;
+};
+
+(prisma as unknown as {
+  $on(event: "query", cb: (e: PrismaQueryEvent) => void): void;
+  $on(event: "warn" | "error", cb: (e: PrismaLogEvent) => void): void;
+}).$on("query", (e) => {
+  const base = { query: e.query, params: e.params, durationMs: e.duration };
+  if (e.duration >= SLOW_QUERY_MS) {
+    logger.warn(base, "slow prisma query");
+  } else {
+    logger.debug(base, "prisma query");
+  }
+});
+(prisma as unknown as {
+  $on(event: "warn" | "error", cb: (e: PrismaLogEvent) => void): void;
+}).$on("warn", (e) => {
+  logger.warn({ target: e.target, message: e.message }, "prisma warning");
+});
+(prisma as unknown as {
+  $on(event: "warn" | "error", cb: (e: PrismaLogEvent) => void): void;
+}).$on("error", (e) => {
+  logger.error({ target: e.target, message: e.message }, "prisma error");
+});

@@ -1,4 +1,5 @@
 import { prisma } from "../../config/database";
+import { logger } from "../../config/logger";
 import { Request, Response } from "express";
 import z from "zod";
 
@@ -60,7 +61,8 @@ export const getFormStats = async (req: Request, res: Response) => {
       },
     });
   } catch (error) {
-    const err = error as Error;
+    const err = error as Error
+    logger.error({ err, method: req.method, url: req.originalUrl }, "form request failed");
     res.status(500).json({
       message: "Internal server error",
       error: err.message,
@@ -115,7 +117,8 @@ export const createNewForm = async (req: Request, res: Response) => {
       form: newForm,
     });
   } catch (error) {
-    const err = error as Error;
+    const err = error as Error
+    logger.error({ err, method: req.method, url: req.originalUrl }, "form request failed");
     res.status(500).json({
       message: "Internal server error",
       error: err.message,
@@ -156,7 +159,8 @@ export const getAllForm = async (req: Request, res: Response) => {
       forms,
     });
   } catch (error) {
-    const err = error as Error;
+    const err = error as Error
+    logger.error({ err, method: req.method, url: req.originalUrl }, "form request failed");
     res.status(500).json({
       message: "Internal server error",
       error: err.message,
@@ -197,7 +201,8 @@ export const deleteForm = async (req: Request, res: Response) => {
       message: `${form?.name} form deleted `,
     });
   } catch (error) {
-    const err = error as Error;
+    const err = error as Error
+    logger.error({ err, method: req.method, url: req.originalUrl }, "form request failed");
     res.status(500).json({
       message: "Internal server error",
       error: err.message,
@@ -243,7 +248,8 @@ export const getFormById = async (req: Request, res: Response) => {
       form: form,
     });
   } catch (error) {
-    const err = error as Error;
+    const err = error as Error
+    logger.error({ err, method: req.method, url: req.originalUrl }, "form request failed");
     res.status(500).json({
       message: "Internal server error",
       error: err.message,
@@ -285,7 +291,8 @@ export const updateForm = async (req: Request, res: Response) => {
       message: `${form.name} form updated successfully `,
     });
   } catch (error) {
-    const err = error as Error;
+    const err = error as Error
+    logger.error({ err, method: req.method, url: req.originalUrl }, "form request failed");
     res.status(500).json({
       message: "Internal server error",
       error: err.message,
@@ -328,7 +335,8 @@ export const publishForm = async (req: Request, res: Response) => {
       response,
     });
   } catch (error) {
-    const err = error as Error;
+    const err = error as Error
+    logger.error({ err, method: req.method, url: req.originalUrl }, "form request failed");
     res.status(500).json({
       message: "Internal server error",
       error: err.message,
@@ -370,7 +378,8 @@ export const getFormByUrl = async (req: Request, res: Response) => {
       content: formContent
     });
   } catch (error) {
-    const err = error as Error;
+    const err = error as Error
+    logger.error({ err, method: req.method, url: req.originalUrl }, "form request failed");
     res.status(500).json({
       message: "Internal server error",
       error: err.message,
@@ -418,6 +427,7 @@ export const submitForm = async (req: Request, res: Response) => {
 
   } catch (error) {
     const err = error as Error
+    logger.error({ err, method: req.method, url: req.originalUrl }, "form request failed");
     res.status(500).json({
       message: "Internal server error",
       error: err.message
@@ -463,6 +473,7 @@ export const GetFormWithSubmissions = async (req: Request, res: Response) => {
     })
   } catch (error) {
     const err = error as Error
+    logger.error({ err, method: req.method, url: req.originalUrl }, "form request failed");
     res.status(500).json({
       message: "Internal server error",
       error: err.message
