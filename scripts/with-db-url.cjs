@@ -27,6 +27,11 @@ function buildDatabaseUrl() {
   const connectTimeout =
     process.env.PGCONNECT_TIMEOUT || process.env.DB_CONNECT_TIMEOUT;
   if (connectTimeout) params.set("connect_timeout", connectTimeout);
+  const poolTimeout =
+    process.env.PGPOOL_TIMEOUT ||
+    process.env.DB_POOL_TIMEOUT ||
+    connectTimeout;
+  if (poolTimeout) params.set("pool_timeout", poolTimeout);
 
   return `postgresql://${encodeURIComponent(user)}:${encodeURIComponent(
     password

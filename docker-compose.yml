@@ -36,6 +36,9 @@ services:
       JWT_SECRET: ${JWT_SECRET:-}
       # Passed through when set (e.g. PGCONNECT_TIMEOUT for Neon cold starts).
       PGCONNECT_TIMEOUT: ${PGCONNECT_TIMEOUT:-}
+      PGPOOL_TIMEOUT: ${PGPOOL_TIMEOUT:-}
+      PGSSLMODE: ${PGSSLMODE:-}
+      PGCHANNELBINDING: ${PGCHANNELBINDING:-}
       # Hosted Postgres (e.g. Neon): full-URL override, takes precedence.
       # Uncomment to use instead of the local db service (also comment out
       # depends_on above, or local db still starts).

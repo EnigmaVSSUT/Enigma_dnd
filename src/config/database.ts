@@ -49,6 +49,18 @@ export function buildDatabaseUrl(): string | undefined {
   if (connectTimeout) {
     params.set("connect_timeout", connectTimeout);
   }
+  // Prisma's pool timeout defaults to 10s and is separate from
+  // connect_timeout. With ~2.3s TCP + TLS + Neon wake, the first checkout
+  // after idle can exceed 10s (P2024) even when connect_timeout=20 allows
+  // the TCP connect. Fall back to the connect timeout so PGCONNECT_TIMEOUT
+  // alone still raises the ceiling; PGPOOL_TIMEOUT overrides when set.
+  const poolTimeout =
+    process.env.PGPOOL_TIMEOUT ||
+    process.env.DB_POOL_TIMEOUT ||
+    connectTimeout;
+  if (poolTimeout) {
+    params.set("pool_timeout", poolTimeout);
+  }
 
   return `postgresql://${encodeURIComponent(user)}:${encodeURIComponent(
     password
