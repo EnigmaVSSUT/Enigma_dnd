@@ -4,8 +4,8 @@ services:
     container_name: dnd-db
     restart: unless-stopped
     environment:
-      POSTGRES_USER: ${POSTGRES_USER:-app}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
+      POSTGRES_USER: ${POSTGRES_USER:-user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password}
       POSTGRES_DB: ${POSTGRES_DB:-dnd}
     ports:
       - "${POSTGRES_PORT:-5432}:5432"
@@ -30,12 +30,13 @@ services:
       - "${PORT:-3000}:3000"
     environment:
       PORT: 3000
-      # Built from the same credentials the db service is created with,
-      # so `docker compose up` works with zero config.
+      # Derived from the same POSTGRES_* credentials as the db service —
+      # single source of truth, no duplicated secrets in .env.
       DATABASE_URL: postgresql://${POSTGRES_USER:-app}:${POSTGRES_PASSWORD:-changeme}@db:5432/${POSTGRES_DB:-dnd}?schema=public
       JWT_SECRET: ${JWT_SECRET:-}
-      # Hosted Postgres (e.g. Neon): uncomment to use instead of the local
-      # db service (also comment out depends_on above, or local db still starts).
+      # Hosted Postgres (e.g. Neon): full-URL override, takes precedence.
+      # Uncomment to use instead of the local db service (also comment out
+      # depends_on above, or local db still starts).
       # DATABASE_URL: ${DATABASE_URL}
 
 volumes:

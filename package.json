@@ -5,8 +5,8 @@
   "scripts": {
     "postinstall": "prisma generate",
     "generate": "npx prisma generate",
-    "migrate": "prisma migrate deploy",
-    "migrate:dev": "prisma migrate dev",
+    "migrate": "node scripts/with-db-url.cjs migrate deploy",
+    "migrate:dev": "node scripts/with-db-url.cjs migrate dev",
     "build": "tsc",
     "start": "node dist/index.js",
     "dev": "tsc -b && node dist/index.js"
