@@ -43,6 +43,12 @@ export function buildDatabaseUrl(): string | undefined {
   if (channelBinding) {
     params.set("channel_binding", channelBinding);
   }
+  // Neon cold-starts can exceed Prisma's 5s default connect timeout.
+  const connectTimeout =
+    process.env.PGCONNECT_TIMEOUT || process.env.DB_CONNECT_TIMEOUT;
+  if (connectTimeout) {
+    params.set("connect_timeout", connectTimeout);
+  }
 
   return `postgresql://${encodeURIComponent(user)}:${encodeURIComponent(
     password

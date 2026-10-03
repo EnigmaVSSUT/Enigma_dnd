@@ -20,7 +20,7 @@ if [ -z "${DATABASE_URL:-}" ]; then
   fi
 
   # encodeURIComponent via node so special chars in user/password are safe
-  DATABASE_URL="$(node -e 'const p=new URLSearchParams({schema:"public"});if(process.argv[7])p.set("sslmode",process.argv[7]);if(process.argv[8])p.set("channel_binding",process.argv[8]);console.log(`postgresql://${encodeURIComponent(process.argv[1])}:${encodeURIComponent(process.argv[2])}@${process.argv[3]}:${process.argv[4]}/${process.argv[5]}?${p.toString()}`)' "$DB_USER" "$DB_PASSWORD" "$DB_HOST" "$DB_PORT" "$DB_NAME" "$DB_SSLMODE" "$DB_CHANNEL_BINDING")"
+  DATABASE_URL="$(node -e 'const p=new URLSearchParams({schema:"public"});if(process.argv[7])p.set("sslmode",process.argv[7]);if(process.argv[8])p.set("channel_binding",process.argv[8]);const ct=process.env.PGCONNECT_TIMEOUT||process.env.DB_CONNECT_TIMEOUT;if(ct)p.set("connect_timeout",ct);console.log(`postgresql://${encodeURIComponent(process.argv[1])}:${encodeURIComponent(process.argv[2])}@${process.argv[3]}:${process.argv[4]}/${process.argv[5]}?${p.toString()}`)' "$DB_USER" "$DB_PASSWORD" "$DB_HOST" "$DB_PORT" "$DB_NAME" "$DB_SSLMODE" "$DB_CHANNEL_BINDING")"
   export DATABASE_URL
 fi
 

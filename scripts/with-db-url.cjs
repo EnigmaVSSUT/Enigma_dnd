@@ -24,6 +24,9 @@ function buildDatabaseUrl() {
   const channelBinding =
     process.env.PGCHANNELBINDING || process.env.DB_CHANNEL_BINDING;
   if (channelBinding) params.set("channel_binding", channelBinding);
+  const connectTimeout =
+    process.env.PGCONNECT_TIMEOUT || process.env.DB_CONNECT_TIMEOUT;
+  if (connectTimeout) params.set("connect_timeout", connectTimeout);
 
   return `postgresql://${encodeURIComponent(user)}:${encodeURIComponent(
     password
