@@ -39,9 +39,18 @@ services:
       DB_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
       DB_NAME: ${POSTGRES_DB:-dnd}
       JWT_SECRET: ${JWT_SECRET:-}
-      # Full-URL override (takes precedence over the DB_* parts above).
+      # Full-URL override (takes precedence over the parts below).
       # Uncomment to use it, e.g. for a hosted database:
       # DATABASE_URL: ${DATABASE_URL}
+      # Hosted Postgres via libpq PG* parts (e.g. Neon, requires sslmode).
+      # Uncomment to use instead of the local db service (also comment out
+      # depends_on above, or the local db will still start):
+      # PGHOST: ${PGHOST}
+      # PGDATABASE: ${PGDATABASE}
+      # PGUSER: ${PGUSER}
+      # PGPASSWORD: ${PGPASSWORD}
+      # PGSSLMODE: ${PGSSLMODE:-require}
+      # PGCHANNELBINDING: ${PGCHANNELBINDING:-require}
 
 volumes:
   pgdata:
