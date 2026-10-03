@@ -30,27 +30,13 @@ services:
       - "${PORT:-3000}:3000"
     environment:
       PORT: 3000
-      # Discrete parts -> the entrypoint builds DATABASE_URL from these.
-      # Values default to the same credentials the db service is created with,
+      # Built from the same credentials the db service is created with,
       # so `docker compose up` works with zero config.
-      DB_HOST: db
-      DB_PORT: 5432
-      DB_USER: ${POSTGRES_USER:-app}
-      DB_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
-      DB_NAME: ${POSTGRES_DB:-dnd}
+      DATABASE_URL: postgresql://${POSTGRES_USER:-app}:${POSTGRES_PASSWORD:-changeme}@db:5432/${POSTGRES_DB:-dnd}?schema=public
       JWT_SECRET: ${JWT_SECRET:-}
-      # Full-URL override (takes precedence over the parts below).
-      # Uncomment to use it, e.g. for a hosted database:
+      # Hosted Postgres (e.g. Neon): uncomment to use instead of the local
+      # db service (also comment out depends_on above, or local db still starts).
       # DATABASE_URL: ${DATABASE_URL}
-      # Hosted Postgres via libpq PG* parts (e.g. Neon, requires sslmode).
-      # Uncomment to use instead of the local db service (also comment out
-      # depends_on above, or the local db will still start):
-      # PGHOST: ${PGHOST}
-      # PGDATABASE: ${PGDATABASE}
-      # PGUSER: ${PGUSER}
-      # PGPASSWORD: ${PGPASSWORD}
-      # PGSSLMODE: ${PGSSLMODE:-require}
-      # PGCHANNELBINDING: ${PGCHANNELBINDING:-require}
 
 volumes:
   pgdata:
