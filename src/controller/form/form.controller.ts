@@ -1,6 +1,5 @@
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "../../config/database";
 import { Request, Response } from "express";
-const prisma = new PrismaClient();
 import z from "zod";
 
 export const getFormStats = async (req: Request, res: Response) => {

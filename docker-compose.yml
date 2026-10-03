@@ -1,0 +1,47 @@
+services:
+  db:
+    image: postgres:18-alpine
+    container_name: dnd-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-app}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
+      POSTGRES_DB: ${POSTGRES_DB:-dnd}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      # PG18+ images use a versioned data layout; mount at /var/lib/postgresql
+      # (not .../data) per https://github.com/docker-library/postgres/pull/1259
+      - pgdata:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER:-app} -d $${POSTGRES_DB:-dnd}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  api:
+    build: .
+    container_name: dnd-api
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "${PORT:-3000}:3000"
+    environment:
+      PORT: 3000
+      # Discrete parts -> the entrypoint builds DATABASE_URL from these.
+      # Values default to the same credentials the db service is created with,
+      # so `docker compose up` works with zero config.
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_USER: ${POSTGRES_USER:-app}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
+      DB_NAME: ${POSTGRES_DB:-dnd}
+      JWT_SECRET: ${JWT_SECRET:-}
+      # Full-URL override (takes precedence over the DB_* parts above).
+      # Uncomment to use it, e.g. for a hosted database:
+      # DATABASE_URL: ${DATABASE_URL}
+
+volumes:
+  pgdata:

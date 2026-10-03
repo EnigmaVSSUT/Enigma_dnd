@@ -1,8 +1,6 @@
 require("dotenv").config();
 import { Request, Response } from "express";
-import { PrismaClient } from "@prisma/client";
-
-const prisma = new PrismaClient();
+import { prisma } from "../../config/database";
 import bcryptjs from "bcryptjs";
 import jwt from "jsonwebtoken";
 import z from "zod";
