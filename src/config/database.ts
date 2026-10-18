@@ -10,23 +10,17 @@ import { logger } from "./logger";
  * keeps one copy of the credentials. Precedence:
  *   1. DATABASE_URL (full URL, e.g. Neon override)
  *   2. libpq names (PGHOST/PGUSER/PGPASSWORD/PGDATABASE/PGPORT — e.g. Neon)
- *   3. app names (DB_* with POSTGRES_* aliases — local docker-compose db)
  */
 export function buildDatabaseUrl(): string | undefined {
   if (process.env.DATABASE_URL) {
     return process.env.DATABASE_URL;
   }
 
-  const user =
-    process.env.PGUSER || process.env.DB_USER || process.env.POSTGRES_USER;
-  const password =
-    process.env.PGPASSWORD ||
-    process.env.DB_PASSWORD ||
-    process.env.POSTGRES_PASSWORD;
-  const host = process.env.PGHOST || process.env.DB_HOST || "localhost";
-  const port = process.env.PGPORT || process.env.DB_PORT || "5432";
-  const name =
-    process.env.PGDATABASE || process.env.DB_NAME || process.env.POSTGRES_DB;
+  const user = process.env.PGUSER;
+  const password = process.env.PGPASSWORD;
+  const host = process.env.PGHOST || "localhost";
+  const port = process.env.PGPORT || "5432";
+  const name = process.env.PGDATABASE;
 
   if (!user || !password || !name) {
     return undefined;
@@ -35,18 +29,16 @@ export function buildDatabaseUrl(): string | undefined {
   // Hosted providers (Neon) require TLS: PGSSLMODE=require (and optionally
   // PGCHANNELBINDING=require). Local docker Postgres sets neither.
   const params = new URLSearchParams({ schema: "public" });
-  const sslmode = process.env.PGSSLMODE || process.env.DB_SSLMODE;
+  const sslmode = process.env.PGSSLMODE;
   if (sslmode) {
     params.set("sslmode", sslmode);
   }
-  const channelBinding =
-    process.env.PGCHANNELBINDING || process.env.DB_CHANNEL_BINDING;
+  const channelBinding = process.env.PGCHANNELBINDING;
   if (channelBinding) {
     params.set("channel_binding", channelBinding);
   }
   // Neon cold-starts can exceed Prisma's 5s default connect timeout.
-  const connectTimeout =
-    process.env.PGCONNECT_TIMEOUT || process.env.DB_CONNECT_TIMEOUT;
+  const connectTimeout = process.env.PGCONNECT_TIMEOUT;
   if (connectTimeout) {
     params.set("connect_timeout", connectTimeout);
   }
@@ -55,10 +47,7 @@ export function buildDatabaseUrl(): string | undefined {
   // after idle can exceed 10s (P2024) even when connect_timeout=20 allows
   // the TCP connect. Fall back to the connect timeout so PGCONNECT_TIMEOUT
   // alone still raises the ceiling; PGPOOL_TIMEOUT overrides when set.
-  const poolTimeout =
-    process.env.PGPOOL_TIMEOUT ||
-    process.env.DB_POOL_TIMEOUT ||
-    connectTimeout;
+  const poolTimeout = process.env.PGPOOL_TIMEOUT || connectTimeout;
   if (poolTimeout) {
     params.set("pool_timeout", poolTimeout);
   }

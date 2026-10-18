@@ -1,36 +1,27 @@
-// Sets DATABASE_URL from discrete parts (PG*/DB*/POSTGRES_*) then runs prisma.
+// Sets DATABASE_URL from discrete PG* parts then runs prisma.
+// Precedence: DATABASE_URL (full URL, e.g. Neon override) > PG* (libpq names).
 // Usage: node scripts/with-db-url.cjs prisma migrate dev
 require("dotenv").config();
 
 function buildDatabaseUrl() {
   if (process.env.DATABASE_URL) return process.env.DATABASE_URL;
 
-  const user =
-    process.env.PGUSER || process.env.DB_USER || process.env.POSTGRES_USER;
-  const password =
-    process.env.PGPASSWORD ||
-    process.env.DB_PASSWORD ||
-    process.env.POSTGRES_PASSWORD;
-  const host = process.env.PGHOST || process.env.DB_HOST || "localhost";
-  const port = process.env.PGPORT || process.env.DB_PORT || "5432";
-  const name =
-    process.env.PGDATABASE || process.env.DB_NAME || process.env.POSTGRES_DB;
+  const user = process.env.PGUSER;
+  const password = process.env.PGPASSWORD;
+  const host = process.env.PGHOST || "localhost";
+  const port = process.env.PGPORT || "5432";
+  const name = process.env.PGDATABASE;
 
   if (!user || !password || !name) return undefined;
 
   const params = new URLSearchParams({ schema: "public" });
-  const sslmode = process.env.PGSSLMODE || process.env.DB_SSLMODE;
+  const sslmode = process.env.PGSSLMODE;
   if (sslmode) params.set("sslmode", sslmode);
-  const channelBinding =
-    process.env.PGCHANNELBINDING || process.env.DB_CHANNEL_BINDING;
+  const channelBinding = process.env.PGCHANNELBINDING;
   if (channelBinding) params.set("channel_binding", channelBinding);
-  const connectTimeout =
-    process.env.PGCONNECT_TIMEOUT || process.env.DB_CONNECT_TIMEOUT;
+  const connectTimeout = process.env.PGCONNECT_TIMEOUT;
   if (connectTimeout) params.set("connect_timeout", connectTimeout);
-  const poolTimeout =
-    process.env.PGPOOL_TIMEOUT ||
-    process.env.DB_POOL_TIMEOUT ||
-    connectTimeout;
+  const poolTimeout = process.env.PGPOOL_TIMEOUT || connectTimeout;
   if (poolTimeout) params.set("pool_timeout", poolTimeout);
 
   return `postgresql://${encodeURIComponent(user)}:${encodeURIComponent(
@@ -41,7 +32,7 @@ function buildDatabaseUrl() {
 const url = buildDatabaseUrl();
 if (!url) {
   console.error(
-    "error: set DATABASE_URL or user/password/database parts (PG*, DB_* or POSTGRES_* accepted)"
+    "error: set DATABASE_URL or PGUSER/PGPASSWORD/PGDATABASE parts"
   );
   process.exit(1);
 }

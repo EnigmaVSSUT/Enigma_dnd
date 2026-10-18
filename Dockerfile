@@ -45,7 +45,7 @@ RUN npm install --no-save --no-audit --no-fund prisma@6.9.0
 
 EXPOSE 3000
 
-# The entrypoint builds DATABASE_URL from DB_USER/DB_PASSWORD/DB_NAME/...
+# The entrypoint builds DATABASE_URL from PG* parts
 # (or uses DATABASE_URL if set), applies migrations, then starts the server.
 ENTRYPOINT ["./docker-entrypoint.sh"]
 CMD ["node", "dist/index.js"]
