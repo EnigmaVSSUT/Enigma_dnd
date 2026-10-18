@@ -8,7 +8,9 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password}
       POSTGRES_DB: ${POSTGRES_DB:-dnd}
     ports:
-      - "${POSTGRES_PORT:-5432}:5432"
+      # Host-side port only. Defaults to 5433 to avoid clashing with a local
+      # Postgres on 5432; containers still talk to db:5432 over the network.
+      - "${POSTGRES_PORT:-5433}:5432"
     volumes:
       # PG18+ images use a versioned data layout; mount at /var/lib/postgresql
       # (not .../data) per https://github.com/docker-library/postgres/pull/1259
@@ -31,8 +33,9 @@ services:
     environment:
       PORT: 3000
       # Derived from the same POSTGRES_* credentials as the db service —
-      # single source of truth, no duplicated secrets in .env.
-      DATABASE_URL: postgresql://${POSTGRES_USER:-app}:${POSTGRES_PASSWORD:-changeme}@db:5432/${POSTGRES_DB:-dnd}?schema=public
+      # single source of truth, no duplicated secrets in .env. Defaults must
+      # match the db service below (user/password) when POSTGRES_* is unset.
+      DATABASE_URL: postgresql://${POSTGRES_USER:-user}:${POSTGRES_PASSWORD:-password}@db:5432/${POSTGRES_DB:-dnd}?schema=public
       JWT_SECRET: ${JWT_SECRET:-}
       # Passed through when set (e.g. PGCONNECT_TIMEOUT for Neon cold starts).
       PGCONNECT_TIMEOUT: ${PGCONNECT_TIMEOUT:-}
