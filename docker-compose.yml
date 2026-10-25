@@ -1,52 +1,50 @@
-# The API talks to the AWS RDS instance configured in .env, so the local
-# Postgres service is commented out. Uncomment `db` and the api's `depends_on`
-# below to go back to a self-contained local stack.
-#
-# Note: the API image runs `prisma migrate deploy` on start, so starting the
-# container against RDS applies any pending migration to that database.
+# Default target is RDS from .env. For an offline database:
+#   docker compose --profile local-db up -d db
 
 services:
-  # db:
-  #   image: postgres:18-alpine
-  #   container_name: dnd-db
-  #   restart: unless-stopped
-  #   environment:
-  #     POSTGRES_USER: ${POSTGRES_USER:-user}
-  #     POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password}
-  #     POSTGRES_DB: ${POSTGRES_DB:-dnd}
-  #   ports:
-  #     # Host-side port only. Defaults to 5433 to avoid clashing with a local
-  #     # Postgres on 5432; containers still talk to db:5432 over the network.
-  #     - "${POSTGRES_PORT:-5433}:5432"
-  #   volumes:
-  #     # PG18+ images use a versioned data layout; mount at /var/lib/postgresql
-  #     # (not .../data) per https://github.com/docker-library/postgres/pull/1259
-  #     - pgdata:/var/lib/postgresql
-  #   healthcheck:
-  #     test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER:-app} -d $${POSTGRES_DB:-dnd}"]
-  #     interval: 5s
-  #     timeout: 3s
-  #     retries: 10
+  db:
+    image: postgres:18-alpine
+    # profiles: ["local-db"]
+    container_name: dnd-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password}
+      POSTGRES_DB: ${POSTGRES_DB:-dnd}
+    ports:
+      - "${POSTGRES_PORT:-5433}:5432"
+    volumes:
+      # PG18+ layout: mount /var/lib/postgresql, not .../data
+      - pgdata:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER:-user} -d $${POSTGRES_DB:-dnd}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  mailpit:
+    image: axllent/mailpit:v1.32
+    container_name: mailpit
+    restart: unless-stopped
+    ports:
+      - "${MAILPIT_UI_PORT:-8025}:8025"
+      - "${MAILPIT_SMTP_PORT:-1025}:1025"
+    environment:
+      MP_MAX_MESSAGES: ${MAILPIT_MAX_MESSAGES:-5000}
+      MP_SMTP_AUTH_ACCEPT_ANY: 1
+      MP_SMTP_AUTH_ALLOW_INSECURE: 1
 
   api:
     build: .
     container_name: dnd-api
     restart: unless-stopped
-    # depends_on:
-    #   db:
-    #     condition: service_healthy
     ports:
       - "${PORT:-3000}:3000"
     extra_hosts:
-      # RDS is private. When you reach it through an SSM port-forward on the
-      # host, point the container at the tunnel:
-      #   PGHOST=host.docker.internal PGPORT=5433 docker compose up
+      # lets the container reach an SSM tunnel running on the host
       - "host.docker.internal:host-gateway"
     environment:
       PORT: 3000
-      # Libpq-style parts, taken from .env (compose interpolates from it). The
-      # entrypoint builds DATABASE_URL from these, so there is only one copy of
-      # the credentials. A full URL still wins if you uncomment it below.
       PGHOST: ${PGHOST}
       PGPORT: ${PGPORT}
       PGDATABASE: ${PGDATABASE}
@@ -56,7 +54,6 @@ services:
       PGCONNECT_TIMEOUT: ${PGCONNECT_TIMEOUT:-}
       PGPOOL_TIMEOUT: ${PGPOOL_TIMEOUT:-}
       JWT_SECRET: ${JWT_SECRET:-}
-      # DATABASE_URL: ${DATABASE_URL}
 
-# volumes:
-#   pgdata:
+volumes:
+  pgdata:
