@@ -1,0 +1,12 @@
+# Keep the Docker build context small. The Dockerfile only copies
+# package*.json, prisma/, tsconfig.json, src/ and docker-entrypoint.sh, so
+# everything else (dependencies, build output, infra, git history) is dead
+# weight that would otherwise be shipped to the daemon on every build.
+node_modules
+dist
+infra
+cdk.out
+.git
+.env
+.env.*
+*.md

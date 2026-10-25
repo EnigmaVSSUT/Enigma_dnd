@@ -107,5 +107,11 @@
     /* Completeness */
     // "skipDefaultLibCheck": true,                      /* Skip type checking .d.ts files that are included with TypeScript. */
     "skipLibCheck": true                                 /* Skip type checking all .d.ts files. */
-  }
+  },
+  /* Without an explicit include, tsc matches every .ts file by default and
+     picks up infra/ (the CDK app, which has its own tsconfig and its own
+     node_modules), which fails with TS6059 because those files are outside
+     rootDir: ./src. */
+  "include": ["src/**/*.ts"],
+  "exclude": ["node_modules", "dist", "infra"]
 }
