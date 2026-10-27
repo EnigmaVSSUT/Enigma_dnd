@@ -1,0 +1,111 @@
+meta {
+  name: Update Form
+  type: http
+  seq: 4
+}
+
+put {
+  url: {{baseUrl}}/api/v1/form/updateForm
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "formId": "{{formId}}",
+    "userId": "{{userId}}",
+    "jsonContent": "{\"components\":[{\"id\":\"c1\",\"type\":\"text\",\"label\":\"Full name\",\"required\":true},{\"id\":\"c2\",\"type\":\"email\",\"label\":\"Work email\",\"required\":true}]}"
+  }
+}
+
+docs {
+  ## PUT /api/v1/form/updateForm
+
+  Replaces the form builder content.
+
+  **Auth:** none
+
+  ### Body fields
+
+  | Field | Type | Rules |
+  | --- | --- | --- |
+  | `formId` | string | UUID of an existing form |
+  | `userId` | string | UUID of the form owner |
+  | `jsonContent` | string | **stringified** JSON, not a JSON object |
+
+  `jsonContent` is stored in a `String` column, so it must be sent as a JSON-encoded string (see the sample below).
+
+  ### Sample request
+
+  ```http
+  PUT {{baseUrl}}/api/v1/form/updateForm
+  Content-Type: application/json
+
+  {
+    "formId": "8f14e45f-ce3a-4f6f-9d3a-1b7c2d4e5f60",
+    "userId": "3d1f0a2b-9c4e-4f5a-8b6d-7e8f9a0b1c2d",
+    "jsonContent": "{\"components\":[{\"id\":\"c1\",\"type\":\"text\",\"label\":\"Full name\",\"required\":true}]}"
+  }
+  ```
+
+  ### Sample response - 200
+
+  ```json
+  {
+    "message": "Employee Onboarding form updated successfully "
+  }
+  ```
+
+  ### Errors
+
+  | Status | Body |
+  | --- | --- |
+  | 400 | `{ "message": "All fields are required" }` |
+  | 404 | `{ "message": "No forms found" }` |
+}
+
+example {
+  name: 200 - Form updated
+
+  request: {
+    url: {{baseUrl}}/api/v1/form/updateForm
+    method: PUT
+    mode: json
+
+    headers: {
+      Content-Type: application/json
+    }
+
+    body:json: {
+      {
+        "formId": "8f14e45f-ce3a-4f6f-9d3a-1b7c2d4e5f60",
+        "userId": "3d1f0a2b-9c4e-4f5a-8b6d-7e8f9a0b1c2d",
+        "jsonContent": "{\"components\":[{\"id\":\"c1\",\"type\":\"text\",\"label\":\"Full name\",\"required\":true}]}"
+      }
+    }
+  }
+
+  response: {
+    headers: {
+      Content-Type: application/json; charset=utf-8
+    }
+
+    status: {
+      code: 200
+      text: OK
+    }
+
+    body: {
+      type: json
+      content: '''
+        {
+          "message": "Employee Onboarding form updated successfully "
+        }
+      '''
+    }
+  }
+}

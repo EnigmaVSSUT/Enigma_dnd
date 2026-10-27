@@ -1,0 +1,193 @@
+meta {
+  name: Sign Up
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/api/v1/auth/signup
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+script:pre-request {
+  // The API requires a unique email and an exactly 10 character registration
+  // number, so derive fresh values to keep this request re-runnable.
+  const stamp = String(Date.now()).slice(-10);
+  bru.setVar("userEmail", `jane.${stamp}@example.com`);
+  bru.setVar("userRegistrationNumber", stamp);
+}
+
+body:json {
+  {
+    "userName": "{{userName}}",
+    "userEmail": "{{userEmail}}",
+    "userPassword": "{{userPassword}}",
+    "userAvtar": "{{userAvtar}}",
+    "userRegistrationNumber": "{{userRegistrationNumber}}"
+  }
+}
+
+script:post-response {
+  if (res.status === 200 && res.body && res.body.token) {
+    bru.setVar("token", res.body.token);
+  }
+}
+
+docs {
+  ## POST /api/v1/auth/signup
+
+  Creates a user account and returns a JWT valid for 30 days.
+
+  **Auth:** none
+
+  ### Body fields
+
+  | Field | Type | Rules |
+  | --- | --- | --- |
+  | `userName` | string | minimum 4 characters |
+  | `userEmail` | string | valid email, unique |
+  | `userPassword` | string | minimum 8 characters |
+  | `userAvtar` | string | valid URL |
+  | `userRegistrationNumber` | string | exactly 10 characters, unique |
+
+  The pre-request script replaces `userEmail` and `userRegistrationNumber` with unique values on every run so the request can be sent repeatedly.
+
+  ### Sample request
+
+  ```http
+  POST {{baseUrl}}/api/v1/auth/signup
+  Content-Type: application/json
+
+  {
+    "userName": "Jane Doe",
+    "userEmail": "jane.doe@example.com",
+    "userPassword": "Password123",
+    "userAvtar": "https://example.com/avatars/jane-doe.png",
+    "userRegistrationNumber": "1234567890"
+  }
+  ```
+
+  ### Sample response - 200
+
+  ```json
+  {
+    "message": "Jane Doe signed up",
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+  }
+  ```
+
+  ### Sample response - 400
+
+  ```json
+  {
+    "message": "Invalid input",
+    "error": {
+      "userEmail": {
+        "_errors": ["Invalid Email"]
+      }
+    }
+  }
+  ```
+
+  ### Sample response - 409
+
+  ```json
+  {
+    "message": "User already exists !"
+  }
+  ```
+}
+
+example {
+  name: 200 - User created
+
+  request: {
+    url: {{baseUrl}}/api/v1/auth/signup
+    method: POST
+    mode: json
+
+    headers: {
+      Content-Type: application/json
+    }
+
+    body:json: {
+      {
+        "userName": "Jane Doe",
+        "userEmail": "jane.doe@example.com",
+        "userPassword": "Password123",
+        "userAvtar": "https://example.com/avatars/jane-doe.png",
+        "userRegistrationNumber": "1234567890"
+      }
+    }
+  }
+
+  response: {
+    headers: {
+      Content-Type: application/json; charset=utf-8
+    }
+
+    status: {
+      code: 200
+      text: OK
+    }
+
+    body: {
+      type: json
+      content: '''
+        {
+          "message": "Jane Doe signed up",
+          "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyRW1haWwiOiJqYW5lLmRvZUBleGFtcGxlLmNvbSIsInVzZXJSb2xlIjoiYWRtaW4iLCJpYXQiOjE3NjE0NzAxMzIsImV4cCI6MTc2NDA2MjEzMn0.7mZ0h4oQ3Y8m2t0N5v1cRk9wS4pQ6xJ8aB3dE5fG7hI"
+        }
+      '''
+    }
+  }
+}
+
+example {
+  name: 409 - User already exists
+
+  request: {
+    url: {{baseUrl}}/api/v1/auth/signup
+    method: POST
+    mode: json
+
+    headers: {
+      Content-Type: application/json
+    }
+
+    body:json: {
+      {
+        "userName": "Jane Doe",
+        "userEmail": "jane.doe@example.com",
+        "userPassword": "Password123",
+        "userAvtar": "https://example.com/avatars/jane-doe.png",
+        "userRegistrationNumber": "1234567890"
+      }
+    }
+  }
+
+  response: {
+    headers: {
+      Content-Type: application/json; charset=utf-8
+    }
+
+    status: {
+      code: 409
+      text: Conflict
+    }
+
+    body: {
+      type: json
+      content: '''
+        {
+          "message": "User already exists !"
+        }
+      '''
+    }
+  }
+}

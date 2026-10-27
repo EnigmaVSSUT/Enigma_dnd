@@ -1,0 +1,129 @@
+meta {
+  name: Publish Form
+  type: http
+  seq: 5
+}
+
+put {
+  url: {{baseUrl}}/api/v1/form/publish
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "userId": "{{userId}}",
+    "formId": "{{formId}}"
+  }
+}
+
+docs {
+  ## PUT /api/v1/form/publish
+
+  Marks a form as published. Published forms can be served through `shareUrl`.
+
+  **Auth:** none
+
+  ### Body fields
+
+  | Field | Type | Rules |
+  | --- | --- | --- |
+  | `userId` | string | UUID of the form owner |
+  | `formId` | string | UUID of an existing form |
+
+  ### Sample request
+
+  ```http
+  PUT {{baseUrl}}/api/v1/form/publish
+  Content-Type: application/json
+
+  {
+    "userId": "3d1f0a2b-9c4e-4f5a-8b6d-7e8f9a0b1c2d",
+    "formId": "8f14e45f-ce3a-4f6f-9d3a-1b7c2d4e5f60"
+  }
+  ```
+
+  ### Sample response - 200
+
+  ```json
+  {
+    "message": "Employee OnboardingForm published successfully",
+    "response": {
+      "id": "8f14e45f-ce3a-4f6f-9d3a-1b7c2d4e5f60",
+      "userId": "3d1f0a2b-9c4e-4f5a-8b6d-7e8f9a0b1c2d",
+      "createdAt": "2026-10-26T09:15:32.481Z",
+      "published": true,
+      "name": "Employee Onboarding",
+      "description": "Collect new hire details before day one",
+      "content": "{}",
+      "visits": 0,
+      "submissions": 0,
+      "shareUrl": "b6f3a1c9-7d2e-4a8b-9c0d-1e2f3a4b5c6d"
+    }
+  }
+  ```
+
+  ### Errors
+
+  | Status | Body |
+  | --- | --- |
+  | 400 | `{ "message": "All fields are required" }` |
+  | 404 | `{ "message": "No form found" }` |
+}
+
+example {
+  name: 200 - Form published
+
+  request: {
+    url: {{baseUrl}}/api/v1/form/publish
+    method: PUT
+    mode: json
+
+    headers: {
+      Content-Type: application/json
+    }
+
+    body:json: {
+      {
+        "userId": "3d1f0a2b-9c4e-4f5a-8b6d-7e8f9a0b1c2d",
+        "formId": "8f14e45f-ce3a-4f6f-9d3a-1b7c2d4e5f60"
+      }
+    }
+  }
+
+  response: {
+    headers: {
+      Content-Type: application/json; charset=utf-8
+    }
+
+    status: {
+      code: 200
+      text: OK
+    }
+
+    body: {
+      type: json
+      content: '''
+        {
+          "message": "Employee OnboardingForm published successfully",
+          "response": {
+            "id": "8f14e45f-ce3a-4f6f-9d3a-1b7c2d4e5f60",
+            "userId": "3d1f0a2b-9c4e-4f5a-8b6d-7e8f9a0b1c2d",
+            "createdAt": "2026-10-26T09:15:32.481Z",
+            "published": true,
+            "name": "Employee Onboarding",
+            "description": "Collect new hire details before day one",
+            "content": "{}",
+            "visits": 0,
+            "submissions": 0,
+            "shareUrl": "b6f3a1c9-7d2e-4a8b-9c0d-1e2f3a4b5c6d"
+          }
+        }
+      '''
+    }
+  }
+}

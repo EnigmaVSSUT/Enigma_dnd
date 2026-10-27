@@ -1,0 +1,22 @@
+meta {
+  name: Forms
+  seq: 2
+}
+
+docs {
+  # Forms
+
+  Create, read, update, publish, submit and delete forms.
+
+  ## Request flow
+
+  1. Run **Auth -> Sign In** (or Sign Up) to populate `token` and `userId`.
+  2. Run **Create Form** to populate `formId` and `formUrl`.
+  3. The remaining requests reuse those variables.
+
+  ## Protected endpoints
+
+  `POST /create`, `DELETE /delete/:formid` and `GET /getFormWithSubmissions/:formId` require a bearer token with role `admin` or `coordinator`.
+
+  > **Authorization caveat:** the auth middleware reads `req.user.id` from the `userId` JWT claim, but `signIn` / `signUp` only sign `{ userEmail, userRole }`. `req.user.id` is therefore `undefined`, and Prisma silently drops that filter. Both handlers still return 200, but they match forms by `id` alone and never verify ownership - any admin/coordinator token can read or delete another user's form. Adding `userId` to the JWT payload (and rejecting a missing id) closes this.
+}

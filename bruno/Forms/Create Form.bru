@@ -1,0 +1,150 @@
+meta {
+  name: Create Form
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/api/v1/form/create
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "userId": "{{userId}}",
+    "name": "Employee Onboarding",
+    "description": "Collect new hire details before day one"
+  }
+}
+
+script:post-response {
+  if (res.status === 200 && res.body && res.body.form) {
+    bru.setVar("formId", res.body.form.id);
+    bru.setVar("formUrl", res.body.form.shareUrl);
+  }
+}
+
+docs {
+  ## POST /api/v1/form/create
+
+  Creates an empty form owned by `userId`.
+
+  **Auth:** bearer token, role `admin` or `coordinator`
+
+  ### Body fields
+
+  | Field | Type | Rules |
+  | --- | --- | --- |
+  | `userId` | string | UUID of an existing user |
+  | `name` | string | minimum 4 characters |
+  | `description` | string | any string, may be empty |
+
+  The post-response script saves `formId` (form id) and `formUrl` (`shareUrl`) for later requests.
+
+  ### Sample request
+
+  ```http
+  POST {{baseUrl}}/api/v1/form/create
+  Authorization: Bearer {{token}}
+  Content-Type: application/json
+
+  {
+    "userId": "3d1f0a2b-9c4e-4f5a-8b6d-7e8f9a0b1c2d",
+    "name": "Employee Onboarding",
+    "description": "Collect new hire details before day one"
+  }
+  ```
+
+  ### Sample response - 200
+
+  ```json
+  {
+    "message": "Employee Onboarding Form created successfully",
+    "form": {
+      "id": "8f14e45f-ce3a-4f6f-9d3a-1b7c2d4e5f60",
+      "userId": "3d1f0a2b-9c4e-4f5a-8b6d-7e8f9a0b1c2d",
+      "createdAt": "2026-10-26T09:15:32.481Z",
+      "published": false,
+      "name": "Employee Onboarding",
+      "description": "Collect new hire details before day one",
+      "content": "{}",
+      "visits": 0,
+      "submissions": 0,
+      "shareUrl": "b6f3a1c9-7d2e-4a8b-9c0d-1e2f3a4b5c6d"
+    }
+  }
+  ```
+
+  ### Errors
+
+  | Status | Body |
+  | --- | --- |
+  | 400 | `{ "message": "Invalid input", "error": { ... } }` |
+  | 401 | `{ "message": "Unauthorised access" }` |
+  | 403 | `{ "message": "Access denied" }` or `{ "message": "Invalid or expired token" }` |
+  | 404 | `{ "message": "No users found !" }` |
+}
+
+example {
+  name: 200 - Form created
+
+  request: {
+    url: {{baseUrl}}/api/v1/form/create
+    method: POST
+    mode: json
+
+    headers: {
+      Content-Type: application/json
+      Authorization: Bearer {{token}}
+    }
+
+    body:json: {
+      {
+        "userId": "{{userId}}",
+        "name": "Employee Onboarding",
+        "description": "Collect new hire details before day one"
+      }
+    }
+  }
+
+  response: {
+    headers: {
+      Content-Type: application/json; charset=utf-8
+    }
+
+    status: {
+      code: 200
+      text: OK
+    }
+
+    body: {
+      type: json
+      content: '''
+        {
+          "message": "Employee Onboarding Form created successfully",
+          "form": {
+            "id": "8f14e45f-ce3a-4f6f-9d3a-1b7c2d4e5f60",
+            "userId": "3d1f0a2b-9c4e-4f5a-8b6d-7e8f9a0b1c2d",
+            "createdAt": "2026-10-26T09:15:32.481Z",
+            "published": false,
+            "name": "Employee Onboarding",
+            "description": "Collect new hire details before day one",
+            "content": "{}",
+            "visits": 0,
+            "submissions": 0,
+            "shareUrl": "b6f3a1c9-7d2e-4a8b-9c0d-1e2f3a4b5c6d"
+          }
+        }
+      '''
+    }
+  }
+}

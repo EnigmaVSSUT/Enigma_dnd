@@ -1,0 +1,87 @@
+meta {
+  name: Get Form By URL
+  type: http
+  seq: 6
+}
+
+put {
+  url: {{baseUrl}}/api/v1/form/getformbyurl/{{formUrl}}
+  body: none
+  auth: none
+}
+
+docs {
+  ## PUT /api/v1/form/getformbyurl/:formUrl
+
+  Public endpoint used by the form renderer. Returns the form content and increments `visits`.
+
+  **Auth:** none
+
+  ### Path parameters
+
+  | Parameter | Type | Rules |
+  | --- | --- | --- |
+  | `formUrl` | string | the form `shareUrl` value |
+
+  > `formUrl` is the `shareUrl` field, not the form `id`.
+
+  ### Sample request
+
+  ```http
+  PUT {{baseUrl}}/api/v1/form/getformbyurl/b6f3a1c9-7d2e-4a8b-9c0d-1e2f3a4b5c6d
+  ```
+
+  ### Sample response - 200
+
+  ```json
+  {
+    "message": "Form content fetched successfully",
+    "content": {
+      "content": "{\"components\":[{\"id\":\"c1\",\"type\":\"text\",\"label\":\"Full name\",\"required\":true}]}",
+      "userId": "3d1f0a2b-9c4e-4f5a-8b6d-7e8f9a0b1c2d"
+    }
+  }
+  ```
+
+  `content.content` is a stringified JSON document.
+
+  ### Errors
+
+  | Status | Body |
+  | --- | --- |
+  | 400 | `{ "message": "All fields are required" }` |
+  | 500 | `{ "message": "Internal server error", "error": "An operation failed because it depends on one or more records that were required but not found..." }` when no form has that `shareUrl` |
+}
+
+example {
+  name: 200 - Form content fetched
+
+  request: {
+    url: {{baseUrl}}/api/v1/form/getformbyurl/{{formUrl}}
+    method: PUT
+  }
+
+  response: {
+    headers: {
+      Content-Type: application/json; charset=utf-8
+    }
+
+    status: {
+      code: 200
+      text: OK
+    }
+
+    body: {
+      type: json
+      content: '''
+        {
+          "message": "Form content fetched successfully",
+          "content": {
+            "content": "{\"components\":[{\"id\":\"c1\",\"type\":\"text\",\"label\":\"Full name\",\"required\":true}]}",
+            "userId": "3d1f0a2b-9c4e-4f5a-8b6d-7e8f9a0b1c2d"
+          }
+        }
+      '''
+    }
+  }
+}

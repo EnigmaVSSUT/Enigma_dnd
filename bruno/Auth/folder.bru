@@ -1,0 +1,14 @@
+meta {
+  name: Auth
+  seq: 1
+}
+
+docs {
+  # Auth
+
+  Sign-up and sign-in endpoints. Both return a JWT that expires after 30 days.
+
+  Tokens contain `userEmail` and `userRole`. They do **not** contain `userId` - see the Forms folder notes.
+
+  Each request saves the returned JWT to the `token` collection variable so the protected Forms requests can reuse it.
+}

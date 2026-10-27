@@ -1,27 +1,24 @@
-// Sets DATABASE_URL from discrete PG* parts then runs prisma.
-// Precedence: DATABASE_URL (full URL, e.g. Neon override) > PG* (libpq names).
-// Usage: node scripts/with-db-url.cjs prisma migrate dev
 require("dotenv").config();
 
 function buildDatabaseUrl() {
   if (process.env.DATABASE_URL) return process.env.DATABASE_URL;
 
-  const user = process.env.PGUSER;
-  const password = process.env.PGPASSWORD;
-  const host = process.env.PGHOST || "localhost";
-  const port = process.env.PGPORT || "5432";
-  const name = process.env.PGDATABASE;
+  const user = process.env.POSTGRES_USER;
+  const password = process.env.POSTGRES_PASSWORD;
+  const host = process.env.POSTGRES_HOST || "localhost";
+  const port = process.env.POSTGRES_PORT || "5432";
+  const name = process.env.POSTGRES_DB;
 
   if (!user || !password || !name) return undefined;
 
   const params = new URLSearchParams({ schema: "public" });
-  const sslmode = process.env.PGSSLMODE;
+  const sslmode = process.env.POSTGRES_SSLMODE;
   if (sslmode) params.set("sslmode", sslmode);
-  const channelBinding = process.env.PGCHANNELBINDING;
+  const channelBinding = process.env.POSTGRES_CHANNELBINDING;
   if (channelBinding) params.set("channel_binding", channelBinding);
-  const connectTimeout = process.env.PGCONNECT_TIMEOUT;
+  const connectTimeout = process.env.POSTGRES_CONNECT_TIMEOUT;
   if (connectTimeout) params.set("connect_timeout", connectTimeout);
-  const poolTimeout = process.env.PGPOOL_TIMEOUT || connectTimeout;
+  const poolTimeout = process.env.POSTGRES_POOL_TIMEOUT || connectTimeout;
   if (poolTimeout) params.set("pool_timeout", poolTimeout);
 
   return `postgresql://${encodeURIComponent(user)}:${encodeURIComponent(
@@ -32,7 +29,7 @@ function buildDatabaseUrl() {
 const url = buildDatabaseUrl();
 if (!url) {
   console.error(
-    "error: set DATABASE_URL or PGUSER/PGPASSWORD/PGDATABASE parts"
+    "error: set DATABASE_URL or POSTGRES_USER/POSTGRES_PASSWORD/POSTGRES_DB parts"
   );
   process.exit(1);
 }

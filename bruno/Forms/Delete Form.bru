@@ -1,0 +1,88 @@
+meta {
+  name: Delete Form
+  type: http
+  seq: 10
+}
+
+delete {
+  url: {{baseUrl}}/api/v1/form/delete/{{formId}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+docs {
+  ## DELETE /api/v1/form/delete/:formid
+
+  Deletes a form and (via cascade) all of its submissions.
+
+  **Auth:** bearer token, role `admin` or `coordinator`
+
+  ### Path parameters
+
+  | Parameter | Type | Rules |
+  | --- | --- | --- |
+  | `formid` | string | UUID of an existing form owned by the caller |
+
+  > **Authorization caveat:** the handler filters by `req.user.id`, but the JWT issued by Sign In / Sign Up only contains `userEmail` and `userRole`. Prisma drops the `undefined` filter, so the form is matched by `id` alone and ownership is never verified - any admin/coordinator token can delete any form. The request returns 200; add `userId` to the signed payload and reject missing ids to enforce ownership.
+
+  ### Sample request
+
+  ```http
+  DELETE {{baseUrl}}/api/v1/form/delete/8f14e45f-ce3a-4f6f-9d3a-1b7c2d4e5f60
+  Authorization: Bearer {{token}}
+  ```
+
+  ### Sample response - 200
+
+  ```json
+  {
+    "message": "Employee Onboarding form deleted "
+  }
+  ```
+
+  ### Errors
+
+  | Status | Body |
+  | --- | --- |
+  | 400 | `{ "message": "All fields are required" }` |
+  | 401 | `{ "message": "Unauthorised access" }` |
+  | 403 | `{ "message": "Access denied" }` or `{ "message": "Invalid or expired token" }` |
+  | 404 | `{ "message": "No form found" }` |
+}
+
+example {
+  name: 200 - Form deleted
+
+  request: {
+    url: {{baseUrl}}/api/v1/form/delete/{{formId}}
+    method: DELETE
+
+    headers: {
+      Authorization: Bearer {{token}}
+    }
+  }
+
+  response: {
+    headers: {
+      Content-Type: application/json; charset=utf-8
+    }
+
+    status: {
+      code: 200
+      text: OK
+    }
+
+    body: {
+      type: json
+      content: '''
+        {
+          "message": "Employee Onboarding form deleted "
+        }
+      '''
+    }
+  }
+}

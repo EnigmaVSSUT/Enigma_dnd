@@ -1,0 +1,137 @@
+meta {
+  name: Get Form With Submissions
+  type: http
+  seq: 9
+}
+
+get {
+  url: {{baseUrl}}/api/v1/form/getFormWithSubmissions/{{formId}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+docs {
+  ## GET /api/v1/form/getFormWithSubmissions/:formId
+
+  Returns a form together with all of its submissions, newest first.
+
+  **Auth:** bearer token, role `admin` or `coordinator`
+
+  ### Path parameters
+
+  | Parameter | Type | Rules |
+  | --- | --- | --- |
+  | `formId` | string | UUID of an existing form |
+
+  > **Authorization caveat:** this handler scopes the query with `req.user.id`, but the JWT issued by Sign In / Sign Up only contains `userEmail` and `userRole`. Prisma drops the `undefined` filter, so the form is matched by `id` alone and ownership is never verified - any admin/coordinator token can read any form's submissions. The request returns 200; add `userId` to the signed payload and reject missing ids to enforce ownership.
+
+  ### Sample request
+
+  ```http
+  GET {{baseUrl}}/api/v1/form/getFormWithSubmissions/8f14e45f-ce3a-4f6f-9d3a-1b7c2d4e5f60
+  Authorization: Bearer {{token}}
+  ```
+
+  ### Sample response - 200
+
+  ```json
+  {
+    "message": "Submission table fetched successfully",
+    "content": {
+      "id": "8f14e45f-ce3a-4f6f-9d3a-1b7c2d4e5f60",
+      "userId": "3d1f0a2b-9c4e-4f5a-8b6d-7e8f9a0b1c2d",
+      "createdAt": "2026-10-26T09:15:32.481Z",
+      "published": true,
+      "name": "Employee Onboarding",
+      "description": "Collect new hire details before day one",
+      "content": "{}",
+      "visits": 42,
+      "submissions": 1,
+      "shareUrl": "b6f3a1c9-7d2e-4a8b-9c0d-1e2f3a4b5c6d",
+      "formSubmissions": [
+        {
+          "id": "a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d",
+          "createdAt": "2026-10-26T10:02:11.734Z",
+          "formId": "8f14e45f-ce3a-4f6f-9d3a-1b7c2d4e5f60",
+          "content": {
+            "fullName": "Jane Doe",
+            "workEmail": "jane.doe@example.com",
+            "startDate": "2026-11-02"
+          },
+          "userId": "3d1f0a2b-9c4e-4f5a-8b6d-7e8f9a0b1c2d"
+        }
+      ]
+    }
+  }
+  ```
+
+  ### Errors
+
+  | Status | Body |
+  | --- | --- |
+  | 400 | `{ "messsage": "All fields are required" }` or `{ "message": "No Submission found" }` |
+  | 401 | `{ "message": "Unauthorised access" }` |
+  | 403 | `{ "message": "Access denied" }` or `{ "message": "Invalid or expired token" }` |
+}
+
+example {
+  name: 200 - Submissions fetched
+
+  request: {
+    url: {{baseUrl}}/api/v1/form/getFormWithSubmissions/{{formId}}
+    method: GET
+
+    headers: {
+      Authorization: Bearer {{token}}
+    }
+  }
+
+  response: {
+    headers: {
+      Content-Type: application/json; charset=utf-8
+    }
+
+    status: {
+      code: 200
+      text: OK
+    }
+
+    body: {
+      type: json
+      content: '''
+        {
+          "message": "Submission table fetched successfully",
+          "content": {
+            "id": "8f14e45f-ce3a-4f6f-9d3a-1b7c2d4e5f60",
+            "userId": "3d1f0a2b-9c4e-4f5a-8b6d-7e8f9a0b1c2d",
+            "createdAt": "2026-10-26T09:15:32.481Z",
+            "published": true,
+            "name": "Employee Onboarding",
+            "description": "Collect new hire details before day one",
+            "content": "{}",
+            "visits": 42,
+            "submissions": 1,
+            "shareUrl": "b6f3a1c9-7d2e-4a8b-9c0d-1e2f3a4b5c6d",
+            "formSubmissions": [
+              {
+                "id": "a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d",
+                "createdAt": "2026-10-26T10:02:11.734Z",
+                "formId": "8f14e45f-ce3a-4f6f-9d3a-1b7c2d4e5f60",
+                "content": {
+                  "fullName": "Jane Doe",
+                  "workEmail": "jane.doe@example.com",
+                  "startDate": "2026-11-02"
+                },
+                "userId": "3d1f0a2b-9c4e-4f5a-8b6d-7e8f9a0b1c2d"
+              }
+            ]
+          }
+        }
+      '''
+    }
+  }
+}

@@ -1,0 +1,124 @@
+meta {
+  name: Submit Form
+  type: http
+  seq: 7
+}
+
+put {
+  url: {{baseUrl}}/api/v1/form/submit
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "formUrl": "{{formUrl}}",
+    "content": {
+      "fullName": "Jane Doe",
+      "workEmail": "jane.doe@example.com",
+      "startDate": "2026-11-02"
+    },
+    "userId": "{{userId}}"
+  }
+}
+
+docs {
+  ## PUT /api/v1/form/submit
+
+  Stores a submission for a published form and increments `submissions`.
+
+  **Auth:** none
+
+  ### Body fields
+
+  | Field | Type | Rules |
+  | --- | --- | --- |
+  | `formUrl` | string | the form `shareUrl` value |
+  | `content` | object | arbitrary JSON answers, stored in a `Json` column |
+  | `userId` | string | UUID of the user the submission belongs to |
+
+  > `content` is a JSON **object** here (unlike `jsonContent` in Update Form, which is a string).
+
+  ### Sample request
+
+  ```http
+  PUT {{baseUrl}}/api/v1/form/submit
+  Content-Type: application/json
+
+  {
+    "formUrl": "b6f3a1c9-7d2e-4a8b-9c0d-1e2f3a4b5c6d",
+    "content": {
+      "fullName": "Jane Doe",
+      "workEmail": "jane.doe@example.com",
+      "startDate": "2026-11-02"
+    },
+    "userId": "3d1f0a2b-9c4e-4f5a-8b6d-7e8f9a0b1c2d"
+  }
+  ```
+
+  ### Sample response - 200
+
+  ```json
+  {
+    "message": "Employee Onboarding form submitted"
+  }
+  ```
+
+  ### Errors
+
+  | Status | Body |
+  | --- | --- |
+  | 400 | `{ "messsage": "All fields are required" }` (note the extra `s` in `messsage`) |
+  | 400 | `{ "message": "Failed to submit form" }` |
+  | 500 | `{ "message": "Internal server error", "error": "..." }` when `formUrl` or `userId` does not exist |
+}
+
+example {
+  name: 200 - Form submitted
+
+  request: {
+    url: {{baseUrl}}/api/v1/form/submit
+    method: PUT
+    mode: json
+
+    headers: {
+      Content-Type: application/json
+    }
+
+    body:json: {
+      {
+        "formUrl": "b6f3a1c9-7d2e-4a8b-9c0d-1e2f3a4b5c6d",
+        "content": {
+          "fullName": "Jane Doe",
+          "workEmail": "jane.doe@example.com",
+          "startDate": "2026-11-02"
+        },
+        "userId": "3d1f0a2b-9c4e-4f5a-8b6d-7e8f9a0b1c2d"
+      }
+    }
+  }
+
+  response: {
+    headers: {
+      Content-Type: application/json; charset=utf-8
+    }
+
+    status: {
+      code: 200
+      text: OK
+    }
+
+    body: {
+      type: json
+      content: '''
+        {
+          "message": "Employee Onboarding form submitted"
+        }
+      '''
+    }
+  }
+}

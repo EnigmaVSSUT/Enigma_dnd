@@ -1,0 +1,44 @@
+auth {
+  mode: bearer
+}
+
+auth:bearer {
+  token: 
+}
+
+docs {
+  # Enigma DnD API
+  
+  Drag-and-drop form builder API built with Express, Prisma and PostgreSQL.
+  
+  - **Base URL:** `http://localhost:3000`
+  - **API prefix:** `/api/v1`
+  - **Content type:** `application/json`
+  - **Auth:** protected endpoints require `Authorization: Bearer <token>`
+  
+  ## Quick start
+  
+  1. Start the API with `npm run dev` and make sure the database is reachable.
+  2. In Bruno, select the **Local** environment.
+  3. Run **Auth -> Sign Up** (or **Auth -> Sign In**). The JWT is saved to the `token` variable automatically.
+  4. Run the **Forms** requests. `userId`, `formId` and `formUrl` are captured from earlier responses.
+  
+  ## Variables
+  
+  | Variable | Description |
+  | --- | --- |
+  | `baseUrl` | API origin, defaults to `http://localhost:3000` |
+  | `token` | JWT captured by Sign Up / Sign In |
+  | `userId` | Captured by Sign In or set manually |
+  | `formId` | Captured by Create Form |
+  | `formUrl` | `shareUrl` captured by Create Form |
+  | `userName` | Display name used by Sign Up |
+  | `userEmail` | Email used by Sign Up / Sign In |
+  | `userPassword` | Password used by Sign Up / Sign In |
+  | `userAvtar` | Avatar URL used by Sign Up |
+  | `userRegistrationNumber` | 10 character registration number used by Sign Up |
+  
+  ## Saved responses
+  
+  Every request contains at least one saved **response example** (open the arrow next to the request in the sidebar). The primary success response is saved as an example and documented in the request **Docs** tab, together with error responses.
+}

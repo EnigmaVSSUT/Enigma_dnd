@@ -1,0 +1,66 @@
+meta {
+  name: API Root
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/
+  body: none
+  auth: none
+}
+
+docs {
+  ## GET /
+
+  Service banner. Use it to confirm the API is up and reachable.
+
+  **Auth:** none
+
+  ### Sample request
+
+  ```http
+  GET {{baseUrl}}/
+  ```
+
+  ### Sample response - 200
+
+  ```json
+  {
+    "info": "Drag and drop form builder api",
+    "version": "v1",
+    "dev": "Gyanranjan Patra & Dharmendra Mahanta"
+  }
+  ```
+}
+
+example {
+  name: 200 - Service info
+
+  request: {
+    url: {{baseUrl}}/
+    method: GET
+  }
+
+  response: {
+    headers: {
+      Content-Type: application/json; charset=utf-8
+    }
+
+    status: {
+      code: 200
+      text: OK
+    }
+
+    body: {
+      type: json
+      content: '''
+        {
+          "info": "Drag and drop form builder api",
+          "version": "v1",
+          "dev": "Gyanranjan Patra & Dharmendra Mahanta"
+        }
+      '''
+    }
+  }
+}

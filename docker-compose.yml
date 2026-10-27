@@ -1,6 +1,3 @@
-# Default target is RDS from .env. For an offline database:
-#   docker compose --profile local-db up -d db
-
 services:
   db:
     image: postgres:18-alpine
@@ -12,7 +9,7 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password}
       POSTGRES_DB: ${POSTGRES_DB:-dnd}
     ports:
-      - "${POSTGRES_PORT:-5433}:5432"
+      - "${POSTGRES_PORT:-5432}:5432"
     volumes:
       # PG18+ layout: mount /var/lib/postgresql, not .../data
       - pgdata:/var/lib/postgresql
@@ -34,26 +31,33 @@ services:
       MP_SMTP_AUTH_ACCEPT_ANY: 1
       MP_SMTP_AUTH_ALLOW_INSECURE: 1
 
-  api:
-    build: .
-    container_name: dnd-api
-    restart: unless-stopped
-    ports:
-      - "${PORT:-3000}:3000"
-    extra_hosts:
-      # lets the container reach an SSM tunnel running on the host
-      - "host.docker.internal:host-gateway"
-    environment:
-      PORT: 3000
-      PGHOST: ${PGHOST}
-      PGPORT: ${PGPORT}
-      PGDATABASE: ${PGDATABASE}
-      PGUSER: ${PGUSER}
-      PGPASSWORD: ${PGPASSWORD}
-      PGSSLMODE: ${PGSSLMODE:-require}
-      PGCONNECT_TIMEOUT: ${PGCONNECT_TIMEOUT:-}
-      PGPOOL_TIMEOUT: ${PGPOOL_TIMEOUT:-}
-      JWT_SECRET: ${JWT_SECRET:-}
+  # api:
+  #   build: .
+  #   container_name: dnd-api
+  #   restart: unless-stopped
+  #   depends_on:
+  #     db:
+  #       condition: service_healthy
+  #   ports:
+  #     - "${PORT:-3000}:3000"
+  #   extra_hosts:
+  #     - "host.docker.internal:host-gateway"
+  #   environment:
+  #     PORT: 3000
+  #     # .env uses POSTGRES_HOST=localhost for host-side tooling; inside the
+  #     # compose network the database is the `db` service.
+  #     POSTGRES_HOST: ${API_POSTGRES_HOST:-db}
+  #     # Container-side port: `db` always listens on 5432 internally, even if
+  #     # POSTGRES_PORT maps a different port on the host.
+  #     POSTGRES_PORT: 5432
+  #     POSTGRES_DB: ${POSTGRES_DB:-dnd}
+  #     POSTGRES_USER: ${POSTGRES_USER:-user}
+  #     POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password}
+  #     POSTGRES_SSLMODE: ${API_POSTGRES_SSLMODE:-disable}
+  #     POSTGRES_CONNECT_TIMEOUT: ${POSTGRES_CONNECT_TIMEOUT:-}
+  #     POSTGRES_POOL_TIMEOUT: ${POSTGRES_POOL_TIMEOUT:-}
+  #     DATABASE_URL: ${DATABASE_URL:-}
+  #     JWT_SECRET: ${JWT_SECRET:-}
 
 volumes:
-  pgdata:
+  pgdata: {}
