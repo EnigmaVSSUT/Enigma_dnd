@@ -1,6 +1,11 @@
 services:
   db:
-    image: postgres:18-alpine
+    # Custom image: Postgres + Prisma CLI, so the db container applies its own
+    # migrations and seeds on startup (see db-entrypoint.sh).
+    build:
+      context: .
+      dockerfile: Dockerfile.db
+    image: dnd-db:local
     # profiles: ["local-db"]
     container_name: dnd-db
     restart: unless-stopped
@@ -11,10 +16,10 @@ services:
     ports:
       - "${POSTGRES_PORT:-5432}:5432"
     volumes:
-      # PG18+ layout: mount /var/lib/postgresql, not .../data
       - pgdata:/var/lib/postgresql
+      - ./prisma/seed:/app/prisma/seed:ro
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER:-user} -d $${POSTGRES_DB:-dnd}"]
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER:-user} -d $${POSTGRES_DB:-dnd} && test -f /tmp/db-init-complete"]
       interval: 5s
       timeout: 3s
       retries: 10

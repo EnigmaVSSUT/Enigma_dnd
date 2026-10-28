@@ -1,0 +1,21 @@
+# Postgres image with just enough Node.js to run the Prisma CLI, so the
+# database container can apply its own migrations on startup.
+FROM postgres:18-alpine
+
+# Prisma engines need OpenSSL; nodejs/npm are the CLI runtime.
+RUN apk add --no-cache nodejs npm openssl
+
+# Keep this in lockstep with the prisma version in package.json so migration
+# checksums match what the API container writes.
+RUN npm install -g prisma@6.9.0 && npm cache clean --force
+
+WORKDIR /app
+
+# Schema, migrations and the seed SQL files are baked in. Compose also mounts
+# prisma/seed, so editing a seed does not require rebuilding the image.
+COPY prisma ./prisma
+COPY db-entrypoint.sh /usr/local/bin/db-entrypoint.sh
+RUN chmod +x /usr/local/bin/db-entrypoint.sh
+
+ENTRYPOINT ["/usr/local/bin/db-entrypoint.sh"]
+CMD ["postgres"]
